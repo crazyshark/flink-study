@@ -8,13 +8,13 @@ import java.util.Map;
 import com.google.common.collect.ImmutableMap;
 
 import flink.examples.JacksonUtils;
-import flink.examples.sql._05.format.formats.protobuf.Test;
+//import flink.examples.sql._05.format.formats.protobuf.Test;
 
 
 public class SocketWriteTest {
 
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+  /*  public static void main(String[] args) throws IOException, InterruptedException {
 
         ServerSocket serversocket = new ServerSocket(9999);
 
@@ -50,5 +50,5 @@ public class SocketWriteTest {
         socket.close();
         serversocket.close();
 
-    }
+    }*/
 }

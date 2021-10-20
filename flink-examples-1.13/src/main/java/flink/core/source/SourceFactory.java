@@ -7,12 +7,12 @@ import org.apache.flink.api.common.serialization.SerializationSchema;
 
 import com.google.protobuf.GeneratedMessageV3;
 
-import flink.examples.datastream._04.keyed_co_process.protobuf.Source;
+//import flink.examples.datastream._04.keyed_co_process.protobuf.Source;
 import lombok.SneakyThrows;
 
 public class SourceFactory {
 
-    public static <Message extends GeneratedMessageV3> SerializationSchema<Message> getProtobufSer(Class<Message> clazz) {
+   /* public static <Message extends GeneratedMessageV3> SerializationSchema<Message> getProtobufSer(Class<Message> clazz) {
         return new SerializationSchema<Message>() {
             @Override
             public byte[] serialize(Message element) {
@@ -63,6 +63,6 @@ public class SourceFactory {
         Source s1 = ds.deserialize(s.toByteArray());
 
         System.out.println();
-    }
+    }*/
 
 }

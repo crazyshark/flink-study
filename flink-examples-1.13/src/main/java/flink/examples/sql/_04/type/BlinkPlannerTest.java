@@ -68,11 +68,13 @@ public class BlinkPlannerTest {
                 + "GROUP BY\n"
                 + "  tumble(rowtime, INTERVAL '1' DAY)";
 
-        Table result = tEnv.sqlQuery(sql);
+        /*Table result = tEnv.sqlQuery(sql);
 
         tEnv.toAppendStream(result, Row.class).print();
 
-        env.execute();
+        env.execute();*/
+
+        System.out.println(tEnv.explainSql(sql));
 
     }
 

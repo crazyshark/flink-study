@@ -26,12 +26,12 @@ import org.apache.flink.util.Collector;
 import com.twitter.chill.protobuf.ProtobufSerializer;
 
 import flink.examples.JacksonUtils;
-import flink.examples.datastream._04.keyed_co_process.protobuf.Source;
-import flink.examples.sql._05.format.formats.protobuf.Test;
+//import flink.examples.datastream._04.keyed_co_process.protobuf.Source;
+//import flink.examples.sql._05.format.formats.protobuf.Test;
 
 public class _04_KeyedCoProcessFunctionTest {
 
-    public static void main(String[] args) throws Exception {
+   /* public static void main(String[] args) throws Exception {
 
         StreamExecutionEnvironment env =
                 StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
@@ -252,7 +252,7 @@ public class _04_KeyedCoProcessFunctionTest {
         public void cancel() {
             this.isCancel = true;
         }
-    }
+    }*/
 
 
 }

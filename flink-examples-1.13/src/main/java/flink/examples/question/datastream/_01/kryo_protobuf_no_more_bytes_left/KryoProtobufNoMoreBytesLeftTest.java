@@ -9,11 +9,11 @@ import com.google.protobuf.Message;
 import com.sun.tools.javac.util.Assert;
 import com.twitter.chill.protobuf.ProtobufSerializer;
 
-import flink.examples.datastream._04.keyed_co_process.protobuf.Source;
+//import flink.examples.datastream._04.keyed_co_process.protobuf.Source;
 
 public class KryoProtobufNoMoreBytesLeftTest {
 
-    public static void main(String[] args) throws Exception {
+    /*public static void main(String[] args) throws Exception {
 
         Source source = Source
                 .newBuilder()
@@ -71,6 +71,6 @@ public class KryoProtobufNoMoreBytesLeftTest {
         kryo.addDefaultSerializer(Source.class, ProtobufSerializerV2.class);
 
         return kryo;
-    }
+    }*/
 
 }

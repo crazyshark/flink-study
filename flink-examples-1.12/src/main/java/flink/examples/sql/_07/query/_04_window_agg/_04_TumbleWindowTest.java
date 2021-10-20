@@ -39,6 +39,9 @@ public class _04_TumbleWindowTest {
 
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
 
+        tEnv.createTemporarySystemFunction("SplitFunction", SplitFunction.class);
+        tEnv.createTemporarySystemFunction("HashFunction", HashFunction.class);
+
         String sourceSql = "CREATE TABLE source_table (\n"
                 + "    dim STRING,\n"
                 + "    user_id BIGINT,\n"
@@ -62,7 +65,8 @@ public class _04_TumbleWindowTest {
                 + "    max_price BIGINT,\n"
                 + "    min_price BIGINT,\n"
                 + "    uv BIGINT,\n"
-                + "    window_start bigint\n"
+                + "    window_start bigint,\n"
+                + "    hehe BIGINT\n"
                 + ") WITH (\n"
                 + "  'connector' = 'print'\n"
                 + ")";
@@ -74,7 +78,8 @@ public class _04_TumbleWindowTest {
                 + "       max(bucket_max_price) as max_price,\n"
                 + "       min(bucket_min_price) as min_price,\n"
                 + "       sum(bucket_uv) as uv,\n"
-                + "       max(window_start) as window_start\n"
+                + "       max(window_start) as window_start,\n"
+                + "         max(hehe) as hehe \n"
                 + "from (\n"
                 + "     select dim,\n"
                 + "            count(*) as bucket_pv,\n"
@@ -82,12 +87,13 @@ public class _04_TumbleWindowTest {
                 + "            max(price) as bucket_max_price,\n"
                 + "            min(price) as bucket_min_price,\n"
                 + "            count(distinct user_id) as bucket_uv,\n"
-                + "            cast(tumble_start(row_time, interval '1' minute) as bigint) * 1000 as window_start\n"
+                + "            cast(tumble_start(row_time, interval '1' minute) as bigint) * 1000 as window_start,\n"
+                + "            HashFunction(price) as hehe \n"
                 + "     from source_table\n"
                 + "     group by\n"
                 + "            mod(user_id, 1024),\n"
                 + "            dim,\n"
-                + "            tumble(row_time, interval '1' minute)\n"
+                + "            tumble(row_time, interval '1' minute),price\n"
                 + ")\n"
                 + "group by dim,\n"
                 + "         window_start";
@@ -96,7 +102,8 @@ public class _04_TumbleWindowTest {
 
         tEnv.executeSql(sourceSql);
         tEnv.executeSql(sinkSql);
-        tEnv.executeSql(selectWhereSql);
+        //tEnv.executeSql(selectWhereSql);
+        System.out.println(tEnv.explainSql(selectWhereSql));
     }
 
 }

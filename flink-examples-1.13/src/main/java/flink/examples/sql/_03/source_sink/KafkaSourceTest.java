@@ -36,10 +36,12 @@ public class KafkaSourceTest {
                         + ")"
         );
 
-        Table t = tEnv.sqlQuery("SELECT * FROM KafkaSourceTable");
+        //Table t = tEnv.sqlQuery("SELECT * FROM KafkaSourceTable");
 
-        tEnv.toAppendStream(t, Row.class).print();
+        //tEnv.toAppendStream(t, Row.class).print();
 
-        env.execute();
+        //env.execute();
+        String sql = "SELECT * FROM KafkaSourceTable";
+        tEnv.explainSql(sql);
     }
 }
