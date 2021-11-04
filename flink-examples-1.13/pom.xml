@@ -11,7 +11,17 @@
 
     <groupId>com.github.antigeneral</groupId>
     <artifactId>flink-examples-1.13</artifactId>
+    <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <slf4j.version>1.7.25</slf4j.version>
+    <logback.version>1.2.3</logback.version>
+    <zookeeper.version>3.7.0</zookeeper.version>
+    <curator-recipes.version>4.0.1</curator-recipes.version>
+    <flink.version>1.13.2</flink.version>
 
+    </properties>
     <build>
 
         <extensions>
