@@ -144,7 +144,7 @@ public class _04_CommonSubGraphTest {
         StatementSet set = tEnv.createStatementSet();
         set.addInsertSql(selectWhereSql);
         set.addInsertSql(selectWhereSql2);
-        System.out.println(set.explain());
+        //System.out.println(set.explain());
         set.execute();
         //tEnv.executeSql(selectWhereSql3);
         tEnv.execute("localTest");
