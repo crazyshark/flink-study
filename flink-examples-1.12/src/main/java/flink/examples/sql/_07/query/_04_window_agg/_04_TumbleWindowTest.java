@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -27,6 +28,7 @@ public class _04_TumbleWindowTest {
         env.setParallelism(1);
 
         // ck 设置
+        env.setStateBackend(new FsStateBackend("file:///Users/zhangqiang326/ck",true));
         env.getCheckpointConfig().setFailOnCheckpointingErrors(false);
         env.enableCheckpointing(30 * 1000L, CheckpointingMode.EXACTLY_ONCE);
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(3L);
@@ -102,8 +104,8 @@ public class _04_TumbleWindowTest {
 
         tEnv.executeSql(sourceSql);
         tEnv.executeSql(sinkSql);
-        //tEnv.executeSql(selectWhereSql);
-        System.out.println(tEnv.explainSql(selectWhereSql));
+        tEnv.executeSql(selectWhereSql);
+        //System.out.println(tEnv.explainSql(selectWhereSql));
     }
 
 }
