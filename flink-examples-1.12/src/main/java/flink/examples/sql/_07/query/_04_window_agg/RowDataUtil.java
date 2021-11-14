@@ -2,6 +2,8 @@ package flink.examples.sql._07.query._04_window_agg;
 
 import com.ibm.icu.util.CodePointTrie;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
+import org.apache.flink.formats.json.JsonToRowDataConverters;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.table.data.*;
 import org.apache.flink.table.data.binary.BinaryArrayData;
 import org.apache.flink.table.data.binary.BinaryMapData;
@@ -114,7 +116,160 @@ public class RowDataUtil {
             return fieldGetter.getFieldOrNull(row);
         };
     }
+    @FunctionalInterface
+    public interface StringToRowDataConverter extends Serializable {
+        Object convert(String field);
+    }
 
+    public StringToRowDataConverter createConverter(LogicalType type) {
+        return wrapIntoNullableConverter(createNotNullConverter(type));
+    }
+
+    private StringToRowDataConverter wrapIntoNullableConverter(JsonToRowDataConverters.JsonToRowDataConverter converter) {
+        return jsonNode -> {
+            if (jsonNode == null || jsonNode.isNull() || jsonNode.isMissingNode()) {
+                return null;
+            }
+            try {
+                return converter.convert(jsonNode);
+            } catch (Throwable t) {
+                if (!ignoreParseErrors) {
+                    throw t;
+                }
+                return null;
+            }
+        };
+    }
+    /** Creates a runtime converter which assuming input object is not null. */
+    private JsonToRowDataConverters.JsonToRowDataConverter createNotNullConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case NULL:
+                return jsonNode -> null;
+            case BOOLEAN:
+                return this::convertToBoolean;
+            case TINYINT:
+                return jsonNode -> Byte.parseByte(jsonNode.asText().trim());
+            case SMALLINT:
+                return jsonNode -> Short.parseShort(jsonNode.asText().trim());
+            case INTEGER:
+            case INTERVAL_YEAR_MONTH:
+                return this::convertToInt;
+            case BIGINT:
+            case INTERVAL_DAY_TIME:
+                return this::convertToLong;
+            case DATE:
+                return this::convertToDate;
+            case TIME_WITHOUT_TIME_ZONE:
+                return this::convertToTime;
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return this::convertToTimestamp;
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                return this::convertToTimestampWithLocalZone;
+            case FLOAT:
+                return this::convertToFloat;
+            case DOUBLE:
+                return this::convertToDouble;
+            case CHAR:
+            case VARCHAR:
+                return this::convertToString;
+            case BINARY:
+            case VARBINARY:
+                return this::convertToBytes;
+            case DECIMAL:
+                return createDecimalConverter((DecimalType) type);
+            case ARRAY:
+                return createArrayConverter((ArrayType) type);
+            case MAP:
+                MapType mapType = (MapType) type;
+                return createMapConverter(
+                        mapType.asSummaryString(), mapType.getKeyType(), mapType.getValueType());
+            case MULTISET:
+                MultisetType multisetType = (MultisetType) type;
+                return createMapConverter(
+                        multisetType.asSummaryString(),
+                        multisetType.getElementType(),
+                        new IntType());
+            case ROW:
+                return createRowConverter((RowType) type);
+            case RAW:
+            default:
+                throw new UnsupportedOperationException("Unsupported type: " + type);
+        }
+    }
+
+    /*static void SetFieldData(LogicalType fieldType, int fieldPos,RowData row,String field){
+        switch (fieldType.getTypeRoot()) {
+            case CHAR:
+            case VARCHAR:
+                ((BinaryRowData) row ).;
+                break;
+            case BOOLEAN:
+                ((BinaryRowData) row ).setBoolean(fieldPos,Boolean.valueOf(field));
+                break;
+            case BINARY:
+            case VARBINARY:
+                ((BinaryRowData) row ).set;
+                break;
+            case DECIMAL:
+                final int decimalPrecision = getPrecision(fieldType);
+                final int decimalScale = getScale(fieldType);
+                fieldGetter = row -> row.getDecimal(fieldPos, decimalPrecision, decimalScale);
+                break;
+            case TINYINT:
+                fieldGetter = row -> row.getByte(fieldPos);
+                break;
+            case SMALLINT:
+                fieldGetter = row -> row.getShort(fieldPos);
+                break;
+            case INTEGER:
+            case DATE:
+            case TIME_WITHOUT_TIME_ZONE:
+            case INTERVAL_YEAR_MONTH:
+                fieldGetter = row -> row.getInt(fieldPos);
+                break;
+            case BIGINT:
+            case INTERVAL_DAY_TIME:
+                fieldGetter = row -> row.getLong(fieldPos);
+                break;
+            case FLOAT:
+                fieldGetter = row -> row.getFloat(fieldPos);
+                break;
+            case DOUBLE:
+                fieldGetter = row -> row.getDouble(fieldPos);
+                break;
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                final int timestampPrecision = getPrecision(fieldType);
+                fieldGetter = row -> row.getTimestamp(fieldPos, timestampPrecision);
+                break;
+            case TIMESTAMP_WITH_TIME_ZONE:
+                throw new UnsupportedOperationException();
+            case ARRAY:
+                fieldGetter = row -> row.getArray(fieldPos);
+                break;
+            case MULTISET:
+            case MAP:
+                fieldGetter = row -> row.getMap(fieldPos);
+                break;
+            case ROW:
+            case STRUCTURED_TYPE:
+                final int rowFieldCount = getFieldCount(fieldType);
+                fieldGetter = row -> row.getRow(fieldPos, rowFieldCount);
+                break;
+            case DISTINCT_TYPE:
+                fieldGetter =
+                        createFieldGetter(((DistinctType) fieldType).getSourceType(), fieldPos);
+                break;
+            case RAW:
+                fieldGetter = row -> row.getRawValue(fieldPos);
+                break;
+            case NULL:
+            case SYMBOL:
+            case UNRESOLVED:
+            default:
+                throw new IllegalArgumentException();
+        }
+    }*/
 
 
     /**
@@ -136,22 +291,40 @@ public class RowDataUtil {
 
     /**************************************************/
 
+   /* public static RowData stringToRowData(String data ,LogicalType[] types){
+        BinaryRowData result = new BinaryRowData(types.length);
+        String[] rowArray = data.split("##");
+        String rowKind = rowArray[0];
+        result.setRowKind(RowKind.valueOf(rowKind));
+        String[] rowDataArray = rowArray[1].split(",");
+        for(int i = 0; i < rowDataArray.length; i++){
+            if(rowDataArray[i].isEmpty()){
+                result.setNullAt(i);
+            }else{
+
+            }
+        }
+
+    }*/
+
 
     /** Stringify the given {@link RowData}. */
     public static String rowDataToString(RowData row, LogicalType[] types) {
         checkArgument(types.length == row.getArity());
         StringBuilder build = new StringBuilder();
-        build.append(row.getRowKind().shortString()).append("(");
+        build.append(row.getRowKind().shortString()).append("##");
         for (int i = 0; i < row.getArity(); i++) {
-            build.append(',');
             if (row.isNullAt(i)) {
                 build.append("null");
             } else {
                 RowData.FieldGetter fieldGetter = RowData.createFieldGetter(types[i], i);
                 build.append(fieldGetter.getFieldOrNull(row));
             }
+            if(i != row.getArity() - 1 ){
+                build.append(',');
+            }
         }
-        build.append(')');
+        //build.append(')');
         return build.toString();
     }
 

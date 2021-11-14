@@ -58,6 +58,22 @@ public class _04_JoinTest {
                 + "  'fields.price.max' = '100000'\n"
                 + ")";
 
+        String sourceSql2 = "CREATE TABLE source_table2 (\n"
+                + "    dim STRING,\n"
+                + "    user_id BIGINT,\n"
+                + "    price BIGINT,\n"
+                + "    row_time AS cast(CURRENT_TIMESTAMP as timestamp(3)),\n"
+                + "    WATERMARK FOR row_time AS row_time - INTERVAL '5' SECOND\n"
+                + ") WITH (\n"
+                + "  'connector' = 'datagen',\n"
+                + "  'rows-per-second' = '10',\n"
+                + "  'fields.dim.length' = '1',\n"
+                + "  'fields.user_id.min' = '1',\n"
+                + "  'fields.user_id.max' = '100000',\n"
+                + "  'fields.price.min' = '1',\n"
+                + "  'fields.price.max' = '100000'\n"
+                + ")";
+
         /*String sinkSql = "CREATE TABLE sink_table (\n"
                 + "    dim STRING,\n"
                 + "    pv BIGINT,\n"
@@ -104,14 +120,16 @@ public class _04_JoinTest {
                 + ")\n"
                 + "group by dim,\n"
                 + "         window_start";*/
-        String selectWhereSql ="INSERT INTO sink_table\n" +
+       /* String selectWhereSql ="INSERT INTO sink_table\n" +
                 "SELECT dim, user_id, price \n" +
                 "FROM source_table\n" +
-                "LEFT JOIN LATERAL TABLE(SplitFunction(dim)) AS T(dim1) ON TRUE";
+                "LEFT JOIN LATERAL TABLE(SplitFunction(dim)) AS T(dim1) ON TRUE";*/
+        String selectWhereSql ="select a1.user_id,b1.user_id from source_table a1 join source_table2 b1 on a1.dim = b1.dim and a1.price > 10";
 
         tEnv.getConfig().getConfiguration().setString("pipeline.name", "1.12.1 TUMBLE WINDOW 案例");
 
         tEnv.executeSql(sourceSql);
+        tEnv.executeSql(sourceSql2);
         tEnv.executeSql(sinkSql);
         //tEnv.executeSql(selectWhereSql);
         System.out.println(tEnv.explainSql(selectWhereSql));
