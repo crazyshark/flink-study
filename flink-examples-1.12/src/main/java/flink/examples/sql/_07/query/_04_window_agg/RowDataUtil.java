@@ -141,7 +141,7 @@ public class RowDataUtil {
         };
     }
     /** Creates a runtime converter which assuming input object is not null. */
-    private JsonToRowDataConverters.JsonToRowDataConverter createNotNullConverter(LogicalType type) {
+    private StringToRowDataConverter createNotNullConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case NULL:
                 return jsonNode -> null;
