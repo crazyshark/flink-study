@@ -454,7 +454,7 @@ public class RowDataUtil {
 
 
     /** Stringify the given {@link RowData}. */
-    public static String rowDataToString(RowData row, LogicalType[] types) {
+    public  String rowDataToString(RowData row, LogicalType[] types) {
         //checkArgument(types.length == row.getArity());
         StringBuilder build = new StringBuilder();
         build.append(row.getRowKind().shortString()).append("##");
@@ -462,7 +462,7 @@ public class RowDataUtil {
             if (row.isNullAt(i)) {
                 build.append("null");
             } else {
-                RowData.FieldGetter fieldGetter = RowData.createFieldGetter(types[i], i);
+                FieldGetter fieldGetter = createFieldGetter(types[i], i);
                 build.append(fieldGetter.getFieldOrNull(row));
             }
             if(i != row.getArity() - 1 ){
@@ -540,8 +540,8 @@ public class RowDataUtil {
         row2.setField(12, timestamp2);
 
         LogicalType[] types = new LogicalType[]{new BooleanType(),new SmallIntType(),new IntType(),new BigIntType()};
-
-        System.out.println(rowDataToString(row1,types));
+        RowDataUtil util = new RowDataUtil();
+        System.out.println(util.rowDataToString(row1,types));
 
         RowType.RowField field1 = new RowType.RowField("sex",new BooleanType());
         RowType.RowField field2 = new RowType.RowField("age",new SmallIntType());
@@ -553,11 +553,12 @@ public class RowDataUtil {
         fieldList.add(field3);
         fieldList.add(field4);
         RowType rowtype = new RowType(fieldList);
-        RowDataUtil util = new RowDataUtil();
+        LogicalType[] types2 = rowtype.getChildren().toArray(new LogicalType[rowtype.getChildren().size()]);
+
         StringToRowDataConverter convert = util.createConverter(rowtype);
         String dataStr = "+I##true,2,3,4";
         RowData row = (RowData) convert.convert(dataStr);
-        System.out.println(rowDataToString(row,types));
+        System.out.println(util.rowDataToString(row,types2));
 
 
     }
