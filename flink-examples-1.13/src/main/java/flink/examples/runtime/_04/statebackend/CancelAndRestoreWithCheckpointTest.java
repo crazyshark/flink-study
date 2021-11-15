@@ -9,6 +9,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.contrib.streaming.state.PredefinedOptions;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.StateBackend;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -25,7 +26,7 @@ public class CancelAndRestoreWithCheckpointTest {
 
         Configuration configuration = new Configuration();
 
-        configuration.setString("execution.savepoint.path", "file:///Users/flink/checkpoints/ce2e1969c5088bf27daf35d4907659fd/chk-5");
+        configuration.setString("execution.savepoint.path", "file:///Users/zhangqiang326/ck/flink/checkpoints/debb43cdccd7a07ac062bc4bfc1bdf15/chk-1");
 
         StreamExecutionEnvironment env =
                 StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(configuration);
@@ -44,11 +45,15 @@ public class CancelAndRestoreWithCheckpointTest {
 
         // 状态后端设置
         // 设置存储文件位置为 file:///Users/flink/checkpoints
-        RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend(
+        /*RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend(
                 "file:///Users/flink/checkpoints", ENABLE_INCREMENTAL_CHECKPOINT);
         rocksDBStateBackend.setNumberOfTransferThreads(NUMBER_OF_TRANSFER_THREADS);
         rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.SPINNING_DISK_OPTIMIZED_HIGH_MEM);
-        env.setStateBackend((StateBackend) rocksDBStateBackend);
+        env.setStateBackend((StateBackend) rocksDBStateBackend);*/
+
+        String fspath = "file:///Users/zhangqiang326/ck/flink/checkpoints";
+        FsStateBackend fsStateBackend = new FsStateBackend(fspath,true);
+        env.setStateBackend(fsStateBackend);
 
         env.setRestartStrategy(RestartStrategies.failureRateRestart(6, org.apache.flink.api.common.time.Time
                 .of(10L, TimeUnit.MINUTES), org.apache.flink.api.common.time.Time.of(5L, TimeUnit.SECONDS)));
