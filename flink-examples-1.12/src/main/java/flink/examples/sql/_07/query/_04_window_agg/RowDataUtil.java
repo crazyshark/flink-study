@@ -1,7 +1,10 @@
 package flink.examples.sql._07.query._04_window_agg;
 
 import com.ibm.icu.util.CodePointTrie;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
+import org.apache.flink.core.memory.DataInputDeserializer;
+import org.apache.flink.core.memory.DataOutputSerializer;
 import org.apache.flink.formats.json.JsonToRowDataConverters;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
@@ -14,6 +17,7 @@ import org.apache.flink.table.data.binary.BinaryMapData;
 import org.apache.flink.table.data.binary.BinaryRowData;
 import org.apache.flink.table.data.writer.BinaryArrayWriter;
 import org.apache.flink.table.data.writer.BinaryRowWriter;
+import org.apache.flink.table.runtime.typeutils.InternalSerializers;
 import org.apache.flink.table.runtime.typeutils.RawValueDataSerializer;
 import org.apache.flink.table.types.logical.*;
 import org.apache.flink.table.types.logical.utils.LogicalTypeChecks;
@@ -39,6 +43,9 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 
 public class RowDataUtil {
 
+    protected static  DataOutputSerializer dataOutputView = new DataOutputSerializer(128);
+
+    protected static DataInputDeserializer dataInputView= new DataInputDeserializer();
 
     /**
      * Creates an accessor for getting elements in an internal row data structure at the given
@@ -473,7 +480,7 @@ public class RowDataUtil {
         return build.toString();
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException {
         StringData str;
         RawValueData<String> generic;
         DecimalData decimal1;
@@ -539,7 +546,7 @@ public class RowDataUtil {
         row2.setField(11, timestamp1);
         row2.setField(12, timestamp2);
 
-        LogicalType[] types = new LogicalType[]{new BooleanType(),new SmallIntType(),new IntType(),new BigIntType()};
+        /*LogicalType[] types = new LogicalType[]{new BooleanType(),new SmallIntType(),new IntType(),new BigIntType()};
         RowDataUtil util = new RowDataUtil();
         System.out.println(util.rowDataToString(row1,types));
 
@@ -558,7 +565,29 @@ public class RowDataUtil {
         StringToRowDataConverter convert = util.createConverter(rowtype);
         String dataStr = "+I##true,2,3,4";
         RowData row = (RowData) convert.convert(dataStr);
-        System.out.println(util.rowDataToString(row,types2));
+        System.out.println(util.rowDataToString(row,types2));*/
+        RowType.RowField field1 = new RowType.RowField("sex",new BooleanType());
+        RowType.RowField field2 = new RowType.RowField("age",new SmallIntType());
+        RowType.RowField field3 = new RowType.RowField("weight",new IntType());
+        RowType.RowField field4 = new RowType.RowField("num",new BigIntType());
+        List<RowType.RowField> fieldList = new ArrayList<>();
+        fieldList.add(field1);
+        fieldList.add(field2);
+        fieldList.add(field3);
+        fieldList.add(field4);
+        RowType rowtype = new RowType(fieldList);
+        TypeSerializer<RowData> serializer = InternalSerializers.create(rowtype);
+        serializer.serialize(row1,dataOutputView);
+        byte[] data = dataOutputView.getCopyOfBuffer();
+        System.out.println(data.toString());
+        String str1 = new String(data);
+        System.out.println(str1);
+        byte[] hehe = str1.getBytes();
+        //byte[] hehe =data.toString().getBytes();
+        dataInputView.setBuffer(hehe);
+        RowData row = serializer.deserialize(dataInputView);
+        System.out.println(row.getInt(2));
+
 
 
     }
