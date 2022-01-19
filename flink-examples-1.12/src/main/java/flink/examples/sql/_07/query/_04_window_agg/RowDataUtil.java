@@ -36,6 +36,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.*;
@@ -531,6 +532,19 @@ public class RowDataUtil {
         row1.setField(2, 3);
         row1.setField(3, (long) 4);
 
+        GenericRowData row3 = new GenericRowData(4);
+        /*row1.setRowKind(RowKind.INSERT);
+        row1.setField(0, true);
+        row1.setField(1, (byte) 1);
+        row1.setField(2, (short) 2);
+        row1.setField(3, 3);
+        row1.setField(4, (long) 4);*/
+        row3.setRowKind(RowKind.INSERT);
+        row3.setField(0, true);
+        row3.setField(1, (short) 2);
+        row3.setField(2, 3);
+        row3.setField(3, (long) 4);
+
         GenericRowData row2 = new GenericRowData(13);
         row2.setField(0, (float) 5);
         row2.setField(1, (double) 6);
@@ -566,7 +580,7 @@ public class RowDataUtil {
         String dataStr = "+I##true,2,3,4";
         RowData row = (RowData) convert.convert(dataStr);
         System.out.println(util.rowDataToString(row,types2));*/
-        RowType.RowField field1 = new RowType.RowField("sex",new BooleanType());
+        /*RowType.RowField field1 = new RowType.RowField("sex",new BooleanType());
         RowType.RowField field2 = new RowType.RowField("age",new SmallIntType());
         RowType.RowField field3 = new RowType.RowField("weight",new IntType());
         RowType.RowField field4 = new RowType.RowField("num",new BigIntType());
@@ -586,9 +600,13 @@ public class RowDataUtil {
         //byte[] hehe =data.toString().getBytes();
         dataInputView.setBuffer(hehe);
         RowData row = serializer.deserialize(dataInputView);
-        System.out.println(row.getInt(2));
+        System.out.println(row.getInt(2));*/
 
-
+        Map<RowData,Integer> data = new HashMap<>();
+        data.put(row1,1);
+        int num = data.getOrDefault(row3,3);
+        data.put(row3,num+1);
+        System.out.println(data.get(row3));
 
     }
 }
